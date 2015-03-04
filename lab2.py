@@ -93,7 +93,6 @@ class Language(object):
             new_rules.append(rule.get_splitted_copy(nonterminals_to_replace))
 
         for nonterminal_to_replace in nonterminals_to_replace:
-            new_nonterminals = list(set(self._nonterminals) - (set(nonterminals_to_replace).union(set([nonterminal_to_replace]))))
             new_nonterminals = list((set(self._nonterminals)-set(nonterminals_to_replace)).union(set([nonterminal_to_replace])))
             new_terminals = list(set(self._terminals).union(set([i + '\'' for i in nonterminals_to_replace])))
             new_grammers.append(Language(terminals=new_terminals, non_terminals=new_nonterminals, rules=new_rules, start=nonterminal_to_replace))
