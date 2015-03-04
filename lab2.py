@@ -18,6 +18,17 @@ class Language(object):
         def is_lamda_rule(self):
             return len(self._to) == 0
 
+        def get_left_side(self):
+            return self._from[:]
+
+
+        def get_right_side(self):
+            return self._to[:]
+
+
+        def get_all_symbols(self):
+            return set(self._from).union(set(self._to))
+
         
         def get_splitted_copy(self, terminals_to_replace):
             new_rule = copy.deepcopy(self)
@@ -89,11 +100,47 @@ class Language(object):
         
         return new_grammers
 
+    def get_Ne(self):
+        previous_set = set([])
+        while 1:
+            current_set = set([])
+            for rule in self._rules:
+                if set(rule.get_right_side()).issubset(previous_set.union(set(self._terminals))):
+                    current_set.add(rule.get_left_side())
+            if current_set == previous_set:
+                break
+            previous_set = current_set
+        return list(previous_set)
+
+
+    def remove_unnecessary_nonterminals(self):
+        ne = self.get_Ne()
+        new_nonterminals = list(filter(lambda x: x in ne, self._nonterminals))
+        new_rules = list(filter(lambda x: x.get_all_symbols().issubset(set(self._terminals).union(set(ne))), self._rules))
+        self._nonterminals = new_nonterminals
+        self._rules = new_rules
+
+    def remove_unreachable_symbols(self):
+        previous_set = set([self._start_symbol])
+        while 1:
+            current_set = copy.deepcopy(previous_set)
+            for rule in self._rules:
+                if rule.get_left_side() in previous_set:
+                    for i in rule.get_right_side():
+                        current_set.add(i)
+            if current_set == previous_set:
+                break
+            previous_set = current_set
+        self._nonterminals = list(set(self._nonterminals).intersection(previous_set))
+        self._terminals = list(set(self._terminals).intersection(previous_set))
+        self._rules = list(filter(lambda x: x.get_all_symbols().issubset(previous_set), self._rules))
+
+
     def __repr__(self):
         return self.__str__()
     
     def __str__(self):
-        return "Terminals: %s\nNon-terminals: %s\nRules: %s\nStart symbol: %s" % (self._terminals, self._nonterminals, self._rules, self._start_symbol)
+        return "Non-terminals: %s\nTerminals: %s\nRules: %s\nStart symbol: %s" % (self._nonterminals, self._terminals, self._rules, self._start_symbol)
 
     
 language = Language(filename='grammer728.txt')
@@ -106,4 +153,17 @@ new_grammers = language.split_grammer(('E', 'T'))
 for new_grammer in new_grammers:
     print(new_grammer)
     print('')
-#print(language.split_grammer(('E', 'T')))
+print('')
+print('')
+print('Grammers after removing unnecessary nonterminals')
+for i in new_grammers:
+    i.remove_unnecessary_nonterminals()
+for i in new_grammers:
+    print(i)
+    print('')
+print('Grammers after removing unreachable symbols')
+for i in new_grammers:
+    i.remove_unreachable_symbols()
+for i in new_grammers:
+    print(i)
+    print('')
