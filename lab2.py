@@ -27,7 +27,7 @@ class Language(object):
 
 
         def get_all_symbols(self):
-            return set(self._from).union(set(self._to))
+            return set([self._from]).union(set(self._to))
 
         
         def get_splitted_copy(self, terminals_to_replace):
